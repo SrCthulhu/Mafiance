@@ -1,23 +1,12 @@
-from email import message
-from types import NoneType
 from flask import Flask, render_template, redirect, session, request, abort
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from datetime import datetime, time
-import os
+from datetime import datetime
 import random
-import cloudinary
-import jyserver.Flask as jsf
+import os
 from twilio.rest import Client
 import keys
 
-
-cloudinary.config(
-    cloud_name="dpwaxzhnx",
-    api_key="686827445281429",
-    api_secret="BEP9W9XdP_emQJb8PL7fhqP8czc",
-    secure=True
-)
 
 app = Flask(__name__, static_url_path='', static_folder='public',)
 app.secret_key = ".."
@@ -25,9 +14,8 @@ uri = os.environ.get('MONGO_DB_URI', "mongodb://127.0.0.1")
 print(uri)
 client = MongoClient(uri)
 db = client.mafiance
-CLOUDINARY_URL = "cloudinary://686827445281429:BEP9W9XdP_emQJb8PL7fhqP8czc@dpwaxzhnx"
 account_sid = 'AC7c85cd42c3cff44b7edaa85b60352e89'
-auth_token = '330c6ac6b2defae84dbbeb5119112ccf'
+auth_token = '0507dcaabe600b09c2eb7b58f53412e8'
 clientTwilio = Client(account_sid, auth_token)
 
 
@@ -389,6 +377,7 @@ def comment_create():
 
     messageText = request.args.get('message')
     imageUrl = request.args.get('image')
+   # code = int(request.args.get('code'))
     orderId = request.args.get('order_id')
     userId = session.get('user_id')
     user_name = db.users.find_one({'_id': ObjectId(userId)})
@@ -400,11 +389,12 @@ def comment_create():
 # En esta condición decimos "si el mensaje de texto no esta vacío o el mensaje
 # reservado del anunciante existe crea el mensaje".
 
-    if messageText != "" or ad_id['message']:
+    if messageText != "" or imageUrl != "":
 
         message = {}
         message['message'] = messageText
         message['image_url'] = imageUrl
+       # message['code'] = code
         message['reserved_message'] = ad_id['message']
         message['order_id'] = orderId
         message['user_id'] = userId
@@ -432,19 +422,20 @@ def order_next_status(id):
         status = 'Liberando'
     elif order['status'] == 'Liberando':
         ##################### Api Rest Twilio (Mensajes de verificación al teléfono) ##########################
-      #  a = random.randint(0, 9)
-      #  b = random.randint(0, 9)
-      #  c = random.randint(0, 9)
-      #  d = random.randint(0, 9)
+        number = random.randint(1000, 9000)
         textMessage = clientTwilio.messages.create(
-            body="nuevo mensaje",
+            body="Tu código de verificación es: " + str(number),
             from_=keys.twilio_number,
             to=keys.target_number
         )
         print(textMessage.body)
-    #######################################################################################################
+
+        userVerificationCode = db.messages.find_one({'code': number})
+        print(userVerificationCode['code'])
+       # if verificationCode['code'] == number:
         status = 'Completado'
 
+    #######################################################################################################
     else:
         order['status'] == 'Apelando'
         status = 'Completado'
