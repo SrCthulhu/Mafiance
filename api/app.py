@@ -5,17 +5,18 @@ from datetime import datetime
 import random
 import os
 from twilio.rest import Client
-import api.keys as keys
 
+from dotenv import dotenv_values
+env = dotenv_values(".env")
+print(env)
 
 app = Flask(__name__, static_url_path='', static_folder='public',)
-app.secret_key = ".."
-uri = os.environ.get('MONGO_DB_URI', "mongodb://127.0.0.1")
-print(uri)
-client = MongoClient(uri)
+app.secret_key = env['FLASK_SECRET_KEY']
+client = MongoClient(env['MONGO_DB_URI'])
 db = client.mafiance
-account_sid = 'AC7c85cd42c3cff44b7edaa85b60352e89'
-auth_token = '9bcf0c1f65cbc68699b937b5624ba752'
+
+account_sid = env['TWILIO_ID']
+auth_token = env['TWILIO_AUTH_TOKEN']
 clientTwilio = Client(account_sid, auth_token)
 
 
@@ -495,8 +496,8 @@ def validation_code_view(id):
     number = random.randint(1000, 9000)
     textMessage = clientTwilio.messages.create(
         body="Tu código de verificación es: " + str(number),
-        from_=keys.twilio_number,
-        to=keys.target_number
+        from_='+13466602964',
+        to='+5491156432312'
     )
     print(textMessage.body)
 
