@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="icon" href="https://i.imgur.com/iYKmUvA.png">
+    <script src="https://kit.fontawesome.com/68d8235f51.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="/temporizador_style.css">
+
+    <style type="text/css">
+        .blanco {
+            color: white;
+        }
+
+        .negro {
+            background-color: #1f1e1e;
+        }
+
+        .magenta {
+            color: #b96acb;
+        }
+
+        .bg-magenta {
+            background: linear-gradient(42deg, rgba(185, 106, 203, 1) 35%, rgba(65, 11, 74, 1) 100%);
+        }
+
+        .fmagenta {
+            background-color: #8c509a;
+        }
+
+        .amarillo {
+            color: #ffc107;
+        }
+
+        .bg-amarillo {
+            background: linear-gradient(70deg, rgba(110, 88, 20, 1) 1%, rgba(255, 193, 7, 1) 100%);
+        }
+
+        .cuadradosA {
+            outline: 1px solid #ffc107;
+        }
+
+        .cuadradosM {
+            outline: 1px solid #b96acb;
+        }
+
+        .img_client {
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <title>Orden en proceso | Mafiance</title>
+</head>
+
+<body>
+    <section class="negro blanco pb-5">
+        {% if mensaje %}
+        <div class="container py-2">
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-danger" role="alert">
+                        {{mensaje}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <form class="container" action="/message/create">
+            <div class="row py-3">
+                <div class="col-4">
+                    <a href="/orders">
+                        <i class="fa-solid fa-xmark fa-3x amarillo"></i>
+                    </a>
+                </div>
+                <div class=" col-4 text-center d-flex">
+                    <i class="fa-solid fa-user-secret fa-3x pb-2 magenta px-1 mx-5"></i>
+                    <h3 class="pt-2 px-2">{{order['advertiser_name']}}</h3>
+                    <i class="fa-solid fa-user-secret fa-3x pb-2 magenta px-1 mx-5"></i>
+                </div>
+                <div class="col-4 text-end pt-2">
+                    <h3 class="amarillo">Chat Activo</h3>
+                </div>
+            </div>
+            <div class="row cuadradosA py-3" style="border-radius: 20px;">
+                <div class="col-4">
+
+                    {% if order['status'] == 'Completado' %}
+                    <h3 style="color: rgb(87, 255, 87)">{{order['status']}}</h3>
+                    {% else %}
+                    <h3 style="color: rgb(255, 0, 0)">{{order['status']}}</h3>
+                    {% endif %}
+
+                    <h6>Monto: {{order['client_quantity']}}</h6>
+                </div>
+
+                <!--Si el user_id de la orden es igual al id del anunciante muestra el botón de liberar para el anunciante 
+                    sino muestra marcar pagado para el cliente.-->
+
+                <div class="col-4 text-center pt-2">
+
+                    <p class="amarillo"> ID Anunciante ({{order['advertiser_id']}})</p>
+                    <p>Usuario actual ({{userId}})</p>
+
+                    {% if userId == order['advertiser_id'] %}
+                    {% if order['status'] == 'Liberando' or order['status'] == 'Apelando' %}
+                    <a href="/validationCode/{{order['_id']}}" class="btn btn-warning btn-lg">Enviar código
+                        (Liberación)</a>
+                    {% endif %}
+                    {% endif %}
+
+
+                    {% if userId != order['advertiser_id'] %}
+                    {% if order['status'] == 'Pendiente' %}
+                    <a href="/order/next/status/{{order['_id']}}" class="btn btn-warning btn-lg">Marcar Pagado</a>
+                    {% endif %}
+                    {% endif %}
+
+                    {% if userId != order['advertiser_id'] %}
+                    {% if order['status'] == 'Liberando' %}
+                    <a href="/order/apelation/{{order['_id']}}" class="btn btn-warning btn-lg">Apelar</a>
+                    {% endif %}
+                    {% endif %}
+
+                    {% if order['status'] == 'Completado' %}
+                    <a href="/order/next/status/{{order['_id']}}" class="btn btn-success btn-lg">Ver resumen</a>
+                    {% endif %}
+                </div>
+                <!--------------------Temporizador------------------------>
+                <div class="col-4">
+                    <div class="col-10 d-flex mx-5">
+
+                    </div>
+                    <div class="cont-temporizador">
+                        <div class="bloque">
+                            <div class="minutos" id="minutos">00</div>
+                            <p>MINUTOS</p>
+                        </div>
+                        <div class="bloque">
+                            <div class="segundos" id="segundos">00</div>
+                            <p>SEGUNDOS</p>
+                        </div>
+                    </div>
+
+                </div>
+                <!-------------------------------------------------------->
+            </div>
+            <hr class="magenta">
+            <div class="row">
+                <div class="col cuadradosM py-3">
+                    <input type="hidden" name="order_id" value="{{order['_id']}}" />
+                    <input type="hidden" name="ad_id" value="{{order['advertisement_id']}}" />
+                    <!--COMO HACER UN CHAT PAPA!!! UN LINK MEGA-->
+                    {% if not message %}
+                    <div class="row py-5">
+                        <div class="col-4"></div>
+                        <div class="col-4 text-center pt-3">
+                            <i class="fa-solid fa-paper-plane fa-5x amarillo"></i>
+                            <p class="pt-3 amarillo">Todavía nadie escribió ¡Sé el primero!</p>
+                        </div>
+                        <div class="col-4"></div>
+                    </div>
+                    {% endif %}
+                    {% for m in message %}
+                    <div class="row">
+                        {% if userId != (m['user']['_id'] | string) %}
+                        <div class="col-7">
+                            <div class="bg-amarillo rounded p-1 mb-3">
+                                <p class="m-0 pb-1">
+                                    <small class="fw-bold">{{m['user']['user']}}</small>
+                                </p>
+
+                                <!--Explicación de condiciones: si existe el mensaje en mensajes publica el mensaje
+                            sino verifica si el usuario de la sesion es igual al id del usuario creador del anuncio
+                        luego verifica si no existe un mensaje en mensajes imprime el mensaje reservado del anunciante-->
+
+                                {% if (m['message'] | string) %}
+
+                                <p class="m-0">- {{m['message']}}</p>
+
+                                {% else %}
+
+
+                                {% if not (m['message'] | string) %}
+
+                                <p class="m-0">- {{m['reserved_message']}}</p>
+
+
+                                {% endif %}
+                                {% endif %}
+
+                            </div>
+                            <!--Si existe la imagen muestra el cuadro de css si no existe ocultalo-->
+
+                            {% if m['image_url'] %}
+                            <img class="img_client img-fluid" src="{{m['image_url']}}" />
+                            {% endif %}
+
+                        </div>
+                        {% else %}
+                        <div class="col-5"></div>
+                        <div class="col-7">
+                            <div class="bg-magenta rounded p-1 mb-3">
+
+                                {% if (m['message'] | string) %}
+                                <p class="m-0">- {{m['message']}}</p>
+                                {% else %}
+
+                                {% if userId == order['advertiser_id'] %}
+                                {% if not (m['message'] | string) %}
+                                <p class="m-0">- {{m['reserved_message']}}</p>
+                                {% endif %}
+                                {% endif %}
+                                {% endif %}
+                            </div>
+
+                            {% if m['image_url'] %}
+                            <img class="img_client img-fluid" src="{{m['image_url']}}" />
+                            {% endif %}
+
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <!--######################################################-->
+            </div>
+            <div class="row py-3">
+                <div class="col-4">
+                    <a id="upload_widget" href="#" class="btn btn-warning">
+                        Cargar imagen
+                    </a>
+                </div>
+                <div class="col-4 pt-1">
+                    <input class="form-control me-2" type="search" name="message" id="message"
+                        placeholder="Escribe tu mensaje">
+
+                    <input type="hidden" name="image" id="image" />
+                </div>
+                {% if userId == order['advertiser_id'] %}
+                <div class="col-1">
+                    <button type="submit" class="btn fa-solid fa-message fa-2x blanco"></button>
+                </div>
+                {% endif %}
+                <div class="col-1">
+                    <button type="submit" class="btn fa-solid fa-paper-plane fa-2x blanco"></button>
+                </div>
+                <div class="col-2"></div>
+            </div>
+        </form>
+    </section>
+
+    <!--Cargamos widget de cloudinary-->
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+
+    <!--Cargamos el archivo javascript para asociar al html-->
+    <script src="/app_image.js"></script>
+
+    <!--Javascript del temporizador-->
+    <script src="/app_temporizador.js"></script>
+
+</body>
+
+</html>
