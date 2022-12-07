@@ -367,8 +367,14 @@ def chat_view(id):
     message = list(db.messages.find({'order_id': id}))
     userId = session.get('user_id')
     mensaje = request.args.get('mensaje')
-
-    return render_template("client_chat.html", order=order, message=message, userId=userId, mensaje=mensaje)
+    mensaje2 = request.args.get('mensaje2')
+    code = db.codes.find_one({'orderId': order['_id']})
+    return render_template("client_chat.html", order=order,
+                           message=message,
+                           userId=userId,
+                           mensaje=mensaje,
+                           mensaje2=mensaje2,
+                           code=code)
 
 
 @app.route("/message/create")
@@ -516,11 +522,11 @@ def validation(id):
         codeMessage['code'] = code
         codeMessage['orderId'] = order['_id']
     else:
-        return redirect('/validationCode/' + str(id)+'?mensaje=El código introducido no es válido, verifique los datos')
+        return redirect('/validationCode/' + str(id)+'?mensaje=El código introducido no es válido, verifique los datos, hemos enviado un nuevo código')
 
     db.codes.insert_one(codeMessage)
 
-    return redirect('/validationCode/' + str(id))
+    return redirect('/chat/' + str(id) + '?mensaje2= El código ha sido verificado exitosamente')
 
 
 @app.route("/order/apelation/<id>")

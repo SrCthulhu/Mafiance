@@ -53,6 +53,7 @@
             <div class="row py-3">
                 <div class="col-12 text-center pb-3">
                     <h4 class="magenta">Hemos enviado un código de verificación a tu celular ******</h4>
+                    <!--Registramos la variable number en la vista del template ubicada en app.py y lo escondemos-->
                     <input type="hidden" name="phone_code" value="{{number}}" />
                 </div>
                 <hr class="magenta">
@@ -66,11 +67,7 @@
                 </div>
                 <div class="col-4"></div>
                 <div class="col-12 text-center pt-3">
-                    {% if userId == order['advertiser_id'] %}
-                    {% if order['status'] == 'Liberando' or order['status'] == 'Apelando' %}
-                    <a href="/order/next/status/{{order['_id']}}" class="btn btn-warning btn-lg">Liberar criptos</a>
-                    {% endif %}
-                    {% endif %}
+
                 </div>
             </div>
         </form>

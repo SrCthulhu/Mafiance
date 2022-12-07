@@ -72,6 +72,17 @@
             </div>
         </div>
         {% endif %}
+        {% if mensaje2 %}
+        <div class="container py-2">
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-success" role="alert">
+                        {{mensaje2}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         <form class="container" action="/message/create">
             <div class="row py-3">
                 <div class="col-4">
@@ -108,17 +119,26 @@
                     <p class="amarillo"> ID Anunciante ({{order['advertiser_id']}})</p>
                     <p>Usuario actual ({{userId}})</p>
 
+                    {% if code == None %}
                     {% if userId == order['advertiser_id'] %}
                     {% if order['status'] == 'Liberando' or order['status'] == 'Apelando' %}
                     <a href="/validationCode/{{order['_id']}}" class="btn btn-warning btn-lg">Enviar código
                         (Liberación)</a>
                     {% endif %}
                     {% endif %}
-
+                    {% endif %}
 
                     {% if userId != order['advertiser_id'] %}
                     {% if order['status'] == 'Pendiente' %}
                     <a href="/order/next/status/{{order['_id']}}" class="btn btn-warning btn-lg">Marcar Pagado</a>
+                    {% endif %}
+                    {% endif %}
+
+                    {% if code %}
+                    {% if userId == order['advertiser_id'] %}
+                    {% if order['status'] == 'Liberando' or order['status'] == 'Apelando' %}
+                    <a href="/order/next/status/{{order['_id']}}" class="btn btn-warning btn-lg">Liberar criptos</a>
+                    {% endif %}
                     {% endif %}
                     {% endif %}
 
@@ -128,10 +148,23 @@
                     {% endif %}
                     {% endif %}
 
+                    <!--En esta sección al culminar la orden se va a eliminar y el cliente no podrá ver el resumen
+                    Entonces hacemos que el anunciante pueda liberar su cripto cambiar de estado y los botones no se repetiran
+                    y el cliente podrá ir a la vista de ordenes completadas para ver su última orden-->
+
+                    {% if userId == order['advertiser_id'] %}
                     {% if order['status'] == 'Completado' %}
                     <a href="/order/next/status/{{order['_id']}}" class="btn btn-success btn-lg">Ver resumen</a>
                     {% endif %}
+                    {% endif %}
+
+                    {% if userId != order['advertiser_id'] %}
+                    {% if order['status'] == 'Completado' %}
+                    <a href="/orders" class="btn btn-success btn-lg">Ver resumen</a>
+                    {% endif %}
+                    {% endif %}
                 </div>
+
                 <!--------------------Temporizador------------------------>
                 <div class="col-4">
                     <div class="col-10 d-flex mx-5">
