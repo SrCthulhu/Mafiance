@@ -998,3 +998,40 @@ def create_sell_ad():
     db.advertisements.insert_one(newAd).inserted_id
 
     return redirect('/anuncios')
+
+
+@app.route("/api/hola")
+def api_prueba():
+
+    amount = float(request.args.get('quantity'))
+    userId = request.args.get('userId')
+    acronym = request.args.get('acronym')
+
+    wallet = db.wallets.find_one({'user_id': userId, 'currency': acronym})
+    if not wallet:
+        return abort(404)
+
+    newTransaction = {
+        'wallet_sender_id': 0,
+        'wallet_receiver_id': str(wallet['_id']),
+        'amount': amount,
+        'currency': acronym,
+        'created_at': datetime.now()
+    }
+    db.transactions.insert_one(newTransaction)
+    # Agregar y aumentar el balance.
+
+    if not wallet:
+        return abort(404)
+
+    db.wallets.update_one(
+        {'user_id': userId, 'currency': acronym},
+        {
+            '$set': {'balance': wallet['balance'] + amount}
+        }
+    )
+
+    return {
+        "wallet_id": str(wallet['_id']),
+        "wallet_balance": wallet['balance'] + amount
+    }
